@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import nexo from "./nexoClient";
 import Dashboard from "./components/Dashboard";
 import "./styles.css";
 
 export default function App() {
+  const [isConnected, setIsConnected] = useState(false);
   const [storeId, setStoreId] = useState(null);
   const [token, setToken] = useState(null);
 
@@ -25,7 +27,26 @@ export default function App() {
         setToken(savedTok);
       }
     }
+
+    const { connect, iAmReady } = nexo;
+    if (connect && iAmReady) {
+      connect(nexo).then(() => {
+        setIsConnected(true);
+        iAmReady(nexo);
+      }).catch(() => setIsConnected(true));
+    } else {
+      setIsConnected(true);
+    }
   }, []);
+
+  if (!isConnected) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+        <p>Conectando...</p>
+      </div>
+    );
+  }
 
   if (!storeId || !token) {
     return (
