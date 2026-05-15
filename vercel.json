@@ -2,18 +2,12 @@
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/api/auth", "destination": "/api/auth.js" },
+    { "source": "/api/scan", "destination": "/api/scan.js" }
+  ],
   "routes": [
-    {
-      "src": "/api/auth",
-      "dest": "/api/auth.js"
-    },
-    {
-      "src": "/api/scan",
-      "dest": "/api/scan.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
