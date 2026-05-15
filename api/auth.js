@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   try {
     const fetch = (await import('node-fetch')).default;
 
-    const response = await fetch('https://www.nuvemshop.com.br/apps/authorize/token', {
+    const response = await fetch('https://www.tiendanube.com/apps/authorize/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
