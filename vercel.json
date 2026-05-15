@@ -1,16 +1,15 @@
 {
+  "version": 2,
+  "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Content-Security-Policy", "value": "frame-ancestors *" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
-      ]
+  "functions": {
+    "api/*.js": {
+      "runtime": "@vercel/node@3"
     }
+  },
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
