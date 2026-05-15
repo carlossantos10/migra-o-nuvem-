@@ -1,8 +1,16 @@
 export default async function handler(req, res) {
-  const { store_id, token, endpoint } = req.query;
+  const { store_id, endpoint } = req.query;
+
+  const cookies = Object.fromEntries(
+    (req.headers.cookie || '').split('; ').filter(Boolean).map(c => {
+      const [k, ...v] = c.split('=');
+      return [k, v.join('=')];
+    })
+  );
+  const token = cookies.ns_token;
 
   if (!store_id || !token) {
-    return res.status(401).json({ error: 'store_id e token são obrigatórios' });
+    return res.status(401).json({ error: 'store_id ou token ausente', store_id, hasToken: !!token });
   }
 
   const ep = endpoint || 'products';

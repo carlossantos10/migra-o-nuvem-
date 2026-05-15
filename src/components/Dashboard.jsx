@@ -20,7 +20,7 @@ export default function Dashboard({ storeId, token }) {
     setData(null);
     setReport(null);
     try {
-      const res = await fetch(`/api/scan?store_id=${storeId}&token=${token}`);
+      const res = await fetch(`/api/scan?store_id=${storeId}`);
       const json = await res.json();
       setData(json);
     } catch (e) {
