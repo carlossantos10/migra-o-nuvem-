@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { connect, iAmReady } from '@tiendanube/nexo/helpers';
 import nexo from './nexoClient';
+import { connect, iAmReady } from '@tiendanube/nexo';
 import Dashboard from './components/Dashboard';
 
 export default function App() {
