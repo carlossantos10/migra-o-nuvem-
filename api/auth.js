@@ -31,7 +31,8 @@ export default async function handler(req, res) {
       `ns_store_id=${data.user_id}; HttpOnly; Path=/; SameSite=None; Secure; Max-Age=31536000`,
     ]);
 
-    res.redirect(302, '/');
+  const adminUrl = `https://${data.user_id}.lojavirtualnuvem.com.br/admin/apps/${process.env.CLIENT_ID || '31751'}`;
+res.redirect(302, adminUrl);
   } catch (error) {
     res.status(500).json({ error: 'Erro interno', detail: error.message });
   }
