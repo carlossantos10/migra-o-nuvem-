@@ -1,20 +1,20 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   LayoutDashboard, TrendingUp, FileText, Search,
   Settings, Plus, Sparkles, ChevronDown, ChevronRight,
-  Check, Zap, Clock, AlertTriangle, CircleDot,
+  Check, Zap, Clock, AlertTriangle, CircleDot, Copy,
 } from "lucide-react";
 import { connect, iAmReady, getStoreInfo } from "@tiendanube/nexo";
 import nexo from "./nexoClient";
 
 const PHASES_META = [
-  { id: 1, name: "Kick Off", short: "Kick Off", color: "bg-emerald-500", text: "text-emerald-600", hex: "#10b981" },
-  { id: 2, name: "Catálogo & Layout", short: "Catálogo", color: "bg-blue-500", text: "text-blue-600", hex: "#3b82f6" },
-  { id: 3, name: "Pagamento, Envio & Apps", short: "Pagamento", color: "bg-amber-500", text: "text-amber-600", hex: "#f59e0b" },
-  { id: 4, name: "Pré Go Live", short: "Pré Go Live", color: "bg-violet-500", text: "text-violet-600", hex: "#8b5cf6" },
-  { id: 5, name: "Go Live", short: "Go Live", color: "bg-red-500", text: "text-red-600", hex: "#ef4444" },
-  { id: 6, name: "Pós Go Live", short: "Pós Go Live", color: "bg-slate-400", text: "text-slate-600", hex: "#94a3b8" },
-  { id: 7, name: "Passagem de Bastão", short: "Passagem", color: "bg-slate-400", text: "text-slate-600", hex: "#94a3b8" },
+  { id: 1, name: "Kick Off", short: "Kick Off", color: "bg-emerald-500", hex: "#10b981" },
+  { id: 2, name: "Catálogo & Layout", short: "Catálogo", color: "bg-blue-500", hex: "#3b82f6" },
+  { id: 3, name: "Pagamento, Envio & Apps", short: "Pagamento", color: "bg-amber-500", hex: "#f59e0b" },
+  { id: 4, name: "Pré Go Live", short: "Pré Go Live", color: "bg-violet-500", hex: "#8b5cf6" },
+  { id: 5, name: "Go Live", short: "Go Live", color: "bg-red-500", hex: "#ef4444" },
+  { id: 6, name: "Pós Go Live", short: "Pós Go Live", color: "bg-slate-400", hex: "#94a3b8" },
+  { id: 7, name: "Passagem de Bastão", short: "Passagem", color: "bg-slate-400", hex: "#94a3b8" },
 ];
 
 const t = (name, owner, opts = {}) => ({
@@ -29,100 +29,100 @@ const t = (name, owner, opts = {}) => ({
   forced: false,
 });
 
-const PHASES_DATA = [
+const DEFAULT_PHASES = [
   { id: 1, tasks: [
-    t("Realizar reunião de Kick Off", "AP", { done: true, due: "12/03" }),
-    t("Verificar servidor de domínio no Whois", "AP", { done: true, due: "12/03" }),
-    t("Verificar plano e status da loja", "AP", { done: true, due: "12/03" }),
-    t("Incluir tags de liberação e migração", "AP", { done: true, due: "13/03" }),
-    t("Validar e-mail principal da loja", "AP", { done: true, due: "13/03" }),
-    t("Criar plano de ação no Admin", "AP", { done: true, due: "13/03" }),
-    t("Enviar e-mail pós Kick Off", "AP", { done: true, due: "13/03" }),
-    t("Criar grupo de WhatsApp", "AP", { done: true, due: "13/03" }),
-    t("Preencher dados do negócio", "Lojista", { done: true, due: "14/03" }),
-    t("Enviar convite Google Analytics/GTM", "Lojista", { done: true, due: "14/03" }),
-    t("Enviar convite Meta", "Lojista", { done: true, due: "14/03" }),
-    t("Contatar Intelipost", "AP", { optional: true, done: true, due: "14/03" }),
-    t("Solicitar liberação B2B", "AP", { optional: true, done: true, due: "14/03" }),
+    t("Realizar reunião de Kick Off", "AP", { due: "a definir" }),
+    t("Verificar servidor de domínio no Whois", "AP", { due: "a definir" }),
+    t("Verificar plano e status da loja", "AP", { due: "a definir" }),
+    t("Incluir tags de liberação e migração", "AP", { due: "a definir" }),
+    t("Validar e-mail principal da loja", "AP", { due: "a definir" }),
+    t("Criar plano de ação no Admin", "AP", { due: "a definir" }),
+    t("Enviar e-mail pós Kick Off", "AP", { due: "a definir" }),
+    t("Criar grupo de WhatsApp", "AP", { due: "a definir" }),
+    t("Preencher dados do negócio", "Lojista", { due: "a definir" }),
+    t("Enviar convite Google Analytics/GTM", "Lojista", { due: "a definir" }),
+    t("Enviar convite Meta", "Lojista", { due: "a definir" }),
+    t("Contatar Intelipost", "AP", { optional: true, due: "a definir" }),
+    t("Solicitar liberação B2B", "AP", { optional: true, due: "a definir" }),
   ]},
   { id: 2, tasks: [
-    t("Briefing com agência", "Lojista + Agência", { done: true, due: "17/03" }),
-    t("Desenvolvimento de protótipo de layout", "Agência", { late: true, due: "28/03" }),
-    t("Configurar integração ERP / importar produtos", "Lojista", { auto: true, done: true, due: "19/03" }),
-    t("Testar integração ERP", "Lojista", { done: true, due: "20/03" }),
-    t("Validar produtos (descrição, fotos, dimensões)", "Lojista", { auto: true, done: true, due: "21/03" }),
-    t("Cadastrar categorias", "Lojista", { auto: true, done: true, due: "21/03" }),
-    t("Orientar campos extras dos produtos (SEO)", "AP", { done: true, due: "21/03" }),
-    t("Cadastrar campos extras nos produtos", "Lojista", { optional: true, due: "24/03" }),
-    t("Aprovação do protótipo de layout", "Lojista", { late: true, due: "29/03" }),
-    t("Configuração do layout na Nuvemshop", "Agência", { due: "02/04" }),
-    t("Criar páginas institucionais", "Lojista", { due: "03/04" }),
+    t("Briefing com agência", "Lojista + Agência", { due: "a definir" }),
+    t("Desenvolvimento de protótipo de layout", "Agência", { due: "a definir" }),
+    t("Configurar integração ERP / importar produtos", "Lojista", { auto: true, due: "a definir" }),
+    t("Testar integração ERP", "Lojista", { due: "a definir" }),
+    t("Validar produtos (descrição, fotos, dimensões)", "Lojista", { auto: true, due: "a definir" }),
+    t("Cadastrar categorias", "Lojista", { auto: true, due: "a definir" }),
+    t("Orientar campos extras dos produtos (SEO)", "AP", { due: "a definir" }),
+    t("Cadastrar campos extras nos produtos", "Lojista", { optional: true, due: "a definir" }),
+    t("Aprovação do protótipo de layout", "Lojista", { due: "a definir" }),
+    t("Configuração do layout na Nuvemshop", "Agência", { due: "a definir" }),
+    t("Criar páginas institucionais", "Lojista", { due: "a definir" }),
   ]},
   { id: 3, tasks: [
-    t("Configurar meios de pagamento", "Lojista", { auto: true, done: true, due: "24/03" }),
-    t("Configurar regras de pagamento (PIX, parcelamento)", "Lojista", { done: true, due: "24/03" }),
-    t("Cadastrar pagamentos personalizados", "Lojista", { optional: true, due: "26/03" }),
-    t("Realizar pedido-teste de pagamento", "Lojista", { auto: true, due: "26/03" }),
-    t("Configurar meios de envio", "Lojista", { auto: true, done: true, due: "25/03" }),
-    t("Configurar frete grátis", "Lojista", { optional: true, done: true, due: "26/03" }),
-    t("Configurar retirada em loja física", "Lojista", { optional: true, due: "26/03" }),
-    t("Cadastrar Centro de Distribuição", "Lojista", { done: true, due: "26/03" }),
-    t("Testar cotação de frete", "Lojista", { due: "27/03" }),
-    t("Instalar aplicativos desejados", "Lojista", { auto: true, done: true, due: "27/03" }),
-    t("Configurar promoções e cupons", "Lojista", { optional: true, auto: true, due: "28/03" }),
-    t("Editar e-mails transacionais", "Lojista", { due: "28/03" }),
-    t("Configurar permissões por usuário", "Lojista", { due: "29/03" }),
-    t("Orientar verificação em duas etapas", "AP", { due: "29/03" }),
+    t("Configurar meios de pagamento", "Lojista", { auto: true, due: "a definir" }),
+    t("Configurar regras de pagamento (PIX, parcelamento)", "Lojista", { due: "a definir" }),
+    t("Cadastrar pagamentos personalizados", "Lojista", { optional: true, due: "a definir" }),
+    t("Realizar pedido-teste de pagamento", "Lojista", { auto: true, due: "a definir" }),
+    t("Configurar meios de envio", "Lojista", { auto: true, due: "a definir" }),
+    t("Configurar frete grátis", "Lojista", { optional: true, due: "a definir" }),
+    t("Configurar retirada em loja física", "Lojista", { optional: true, due: "a definir" }),
+    t("Cadastrar Centro de Distribuição", "Lojista", { due: "a definir" }),
+    t("Testar cotação de frete", "Lojista", { due: "a definir" }),
+    t("Instalar aplicativos desejados", "Lojista", { auto: true, due: "a definir" }),
+    t("Configurar promoções e cupons", "Lojista", { optional: true, auto: true, due: "a definir" }),
+    t("Editar e-mails transacionais", "Lojista", { due: "a definir" }),
+    t("Configurar permissões por usuário", "Lojista", { due: "a definir" }),
+    t("Orientar verificação em duas etapas", "AP", { due: "a definir" }),
   ]},
   { id: 4, tasks: [
-    t("Realizar treinamento da plataforma", "AP", { due: "01/04" }),
-    t("Enviar e-mail resumo pós treinamento", "AP", { due: "01/04" }),
-    t("Solicitar dados de faturamento da loja atual", "AP", { due: "02/04" }),
-    t("Enviar orientações de Redirect 301", "AP", { due: "02/04" }),
-    t("Preenchimento planilha Redirect 301", "Lojista", { due: "04/04" }),
-    t("Receber e validar planilha Redirect 301", "AP", { due: "05/04" }),
-    t("Subir planilha Redirect 301 na plataforma", "AP", { due: "05/04" }),
-    t("Realizar mapeamento de IDs Meta e Google", "AP", { due: "06/04" }),
-    t("Verificação de performance via NubeInsights", "AP", { due: "07/04" }),
-    t("Análise NubeInsights < 50", "AP", { optional: true, due: "07/04" }),
-    t("Orientar importação da base de clientes", "AP", { due: "08/04" }),
-    t("Agendar reunião de Pré Go Live", "AP", { due: "08/04" }),
-    t("Validar estrutura do layout", "AP", { due: "09/04" }),
-    t("Realizar compra-teste completa", "AP + Lojista", { due: "10/04" }),
-    t("Enviar orientações de apontamento de domínio", "AP", { due: "10/04" }),
-    t("Agendar data para virada do DNS", "AP + Lojista", { due: "11/04" }),
+    t("Realizar treinamento da plataforma", "AP", { due: "a definir" }),
+    t("Enviar e-mail resumo pós treinamento", "AP", { due: "a definir" }),
+    t("Solicitar dados de faturamento da loja atual", "AP", { due: "a definir" }),
+    t("Enviar orientações de Redirect 301", "AP", { due: "a definir" }),
+    t("Preenchimento planilha Redirect 301", "Lojista", { due: "a definir" }),
+    t("Receber e validar planilha Redirect 301", "AP", { due: "a definir" }),
+    t("Subir planilha Redirect 301 na plataforma", "AP", { due: "a definir" }),
+    t("Realizar mapeamento de IDs Meta e Google", "AP", { due: "a definir" }),
+    t("Verificação de performance via NubeInsights", "AP", { due: "a definir" }),
+    t("Análise NubeInsights < 50", "AP", { optional: true, due: "a definir" }),
+    t("Orientar importação da base de clientes", "AP", { due: "a definir" }),
+    t("Agendar reunião de Pré Go Live", "AP", { due: "a definir" }),
+    t("Validar estrutura do layout", "AP", { due: "a definir" }),
+    t("Realizar compra-teste completa", "AP + Lojista", { due: "a definir" }),
+    t("Enviar orientações de apontamento de domínio", "AP", { due: "a definir" }),
+    t("Agendar data para virada do DNS", "AP + Lojista", { due: "a definir" }),
   ]},
   { id: 5, tasks: [
-    t("Confirmar apontamento de domínio", "AP", { auto: true, due: "15/04" }),
-    t("Verificar SSL ativo", "AP", { auto: true, due: "15/04" }),
-    t("Confirmar domínio principal no painel", "AP", { due: "15/04" }),
-    t("Verificar apontamentos no Whois", "AP", { due: "15/04" }),
-    t("Enviar e-mail orientações Google e Meta", "AP", { due: "15/04" }),
-    t("Configurar GA4", "Lojista", { due: "16/04" }),
-    t("Configurar GTM", "Lojista", { due: "16/04" }),
-    t("Configurar Google Shopping e Ads", "Lojista", { due: "17/04" }),
+    t("Confirmar apontamento de domínio", "AP", { auto: true, due: "a definir" }),
+    t("Verificar SSL ativo", "AP", { auto: true, due: "a definir" }),
+    t("Confirmar domínio principal no painel", "AP", { due: "a definir" }),
+    t("Verificar apontamentos no Whois", "AP", { due: "a definir" }),
+    t("Enviar e-mail orientações Google e Meta", "AP", { due: "a definir" }),
+    t("Configurar GA4", "Lojista", { due: "a definir" }),
+    t("Configurar GTM", "Lojista", { due: "a definir" }),
+    t("Configurar Google Shopping e Ads", "Lojista", { due: "a definir" }),
   ]},
   { id: 6, tasks: [
-    t("Verificar auto-tagging Google Ads", "AP + Lojista", { due: "18/04" }),
-    t("Verificar campanhas Performance Max", "AP", { optional: true, due: "18/04" }),
-    t("Configurar catálogo no Merchant Center", "Lojista", { due: "19/04" }),
-    t("Verificar campos Google Shopping", "AP", { due: "19/04" }),
-    t("Configurar integração Meta Shopping", "Lojista", { due: "20/04" }),
-    t("Testar links quebrados", "AP", { due: "20/04" }),
-    t("Verificar performance pós-apontamento", "AP", { due: "21/04" }),
-    t("Finalizar migração de IDs Meta e Google", "AP", { due: "21/04" }),
-    t("Desativar feed XML da plataforma anterior (Meta)", "AP + Lojista", { optional: true, due: "22/04" }),
-    t("Verificar permissões Meta", "AP", { optional: true, due: "22/04" }),
-    t("Registrar observações no HubSpot", "AP", { due: "23/04" }),
-    t("Preencher manual de passagem de bastão", "AP", { due: "24/04" }),
-    t("Orientar upload de sitemap Google Search Console", "Lojista", { due: "24/04" }),
-    t("Acompanhamento do projeto pós migração", "AP", { due: "09/05" }),
+    t("Verificar auto-tagging Google Ads", "AP + Lojista", { due: "a definir" }),
+    t("Verificar campanhas Performance Max", "AP", { optional: true, due: "a definir" }),
+    t("Configurar catálogo no Merchant Center", "Lojista", { due: "a definir" }),
+    t("Verificar campos Google Shopping", "AP", { due: "a definir" }),
+    t("Configurar integração Meta Shopping", "Lojista", { due: "a definir" }),
+    t("Testar links quebrados", "AP", { due: "a definir" }),
+    t("Verificar performance pós-apontamento", "AP", { due: "a definir" }),
+    t("Finalizar migração de IDs Meta e Google", "AP", { due: "a definir" }),
+    t("Desativar feed XML da plataforma anterior (Meta)", "AP + Lojista", { optional: true, due: "a definir" }),
+    t("Verificar permissões Meta", "AP", { optional: true, due: "a definir" }),
+    t("Registrar observações no HubSpot", "AP", { due: "a definir" }),
+    t("Preencher manual de passagem de bastão", "AP", { due: "a definir" }),
+    t("Orientar upload de sitemap Google Search Console", "Lojista", { due: "a definir" }),
+    t("Acompanhamento do projeto pós migração", "AP", { due: "a definir" }),
   ]},
   { id: 7, tasks: [
-    t("Agendar reunião de passagem de bastão", "AP", { due: "10/05" }),
-    t("Apresentar AM ao merchant", "AP", { due: "12/05" }),
-    t("Incluir AM no grupo WhatsApp e sair", "AP", { due: "12/05" }),
-    t("Verificar pesquisa de satisfação (CSAT)", "AP", { due: "15/05" }),
+    t("Agendar reunião de passagem de bastão", "AP", { due: "a definir" }),
+    t("Apresentar AM ao merchant", "AP", { due: "a definir" }),
+    t("Incluir AM no grupo WhatsApp e sair", "AP", { due: "a definir" }),
+    t("Verificar pesquisa de satisfação (CSAT)", "AP", { due: "a definir" }),
   ]},
 ];
 
@@ -134,26 +134,60 @@ const ownerStyle = (o) => {
 };
 
 export default function App() {
-  const [phasesState, setPhasesState] = useState(PHASES_DATA);
-  const [expandedPhase, setExpandedPhase] = useState(2);
+  const [phasesState, setPhasesState] = useState(DEFAULT_PHASES);
+  const [expandedPhase, setExpandedPhase] = useState(null);
   const [expandedTask, setExpandedTask] = useState(null);
   const [activeNav, setActiveNav] = useState("dashboard");
-  const [storeName, setStoreName] = useState("Loja Exemplo");
+  const [storeName, setStoreName] = useState("Carregando...");
   const [storeId, setStoreId] = useState(null);
   const [scanning, setScanning] = useState(false);
+  const [lastScan, setLastScan] = useState(null);
   const [reportText, setReportText] = useState(null);
   const [generatingReport, setGeneratingReport] = useState(false);
+  const [copied, setCopied] = useState(null);
+  const [week, setWeek] = useState(1);
 
-  useState(() => {
+  useEffect(() => {
     connect(nexo).then(async () => {
       try {
         const info = await getStoreInfo(nexo);
         setStoreId(info.id);
         setStoreName(info.name || "Loja");
-      } catch (e) { console.error(e); }
+        await loadState(info.id);
+      } catch (e) {
+        console.error(e);
+        setStoreName("Loja");
+      }
       iAmReady(nexo);
     });
   }, []);
+
+  async function loadState(id) {
+    try {
+      const res = await fetch(`/api/state?store_id=${id}`);
+      const data = await res.json();
+      if (data && data.phases) {
+        setPhasesState(data.phases);
+        setLastScan(data.lastScan || null);
+        setWeek(data.week || 1);
+      }
+    } catch (e) {
+      console.error("Erro ao carregar estado:", e);
+    }
+  }
+
+  async function saveState(phases, scan) {
+    if (!storeId) return;
+    try {
+      await fetch(`/api/state?store_id=${storeId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phases, lastScan: scan, week }),
+      });
+    } catch (e) {
+      console.error("Erro ao salvar estado:", e);
+    }
+  }
 
   const phaseStats = useMemo(() =>
     phasesState.map((p) => {
@@ -192,27 +226,31 @@ export default function App() {
   );
 
   const toggleTaskDone = (phaseId, taskIdx) => {
-    setPhasesState((prev) =>
-      prev.map((p) =>
+    setPhasesState((prev) => {
+      const next = prev.map((p) =>
         p.id !== phaseId ? p : {
           ...p,
           tasks: p.tasks.map((t, i) =>
             i !== taskIdx ? t : { ...t, done: !t.done, late: t.done ? t.late : false }
           ),
         }
-      )
-    );
+      );
+      saveState(next, lastScan);
+      return next;
+    });
   };
 
   const updateTaskField = (phaseId, taskIdx, field, value) => {
-    setPhasesState((prev) =>
-      prev.map((p) =>
+    setPhasesState((prev) => {
+      const next = prev.map((p) =>
         p.id !== phaseId ? p : {
           ...p,
           tasks: p.tasks.map((t, i) => i !== taskIdx ? t : { ...t, [field]: value }),
         }
-      )
-    );
+      );
+      saveState(next, lastScan);
+      return next;
+    });
   };
 
   async function runScan() {
@@ -221,22 +259,29 @@ export default function App() {
     try {
       const res = await fetch(`/api/scan?store_id=${storeId}`);
       const data = await res.json();
+      const now = new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+      setLastScan(now);
+
       if (data.categories) {
-        setPhasesState((prev) => prev.map((p) => {
-          if (p.id !== 3) return p;
-          return {
-            ...p,
-            tasks: p.tasks.map((t) => {
-              if (t.name.includes("pagamento") && data.categories.payments?.status === "done")
-                return { ...t, done: true, auto: true };
-              if (t.name.includes("envio") && data.categories.shipping?.status === "done")
-                return { ...t, done: true, auto: true };
-              if (t.name.includes("aplicativos") && data.categories.products?.status !== "pending")
-                return { ...t, done: true, auto: true };
-              return t;
-            }),
-          };
-        }));
+        setPhasesState((prev) => {
+          const next = prev.map((p) => {
+            if (p.id !== 3) return p;
+            return {
+              ...p,
+              tasks: p.tasks.map((t) => {
+                if (t.name.includes("pagamento") && data.categories.payments?.status === "done")
+                  return { ...t, done: true };
+                if (t.name.includes("envio") && data.categories.shipping?.status === "done")
+                  return { ...t, done: true };
+                if (t.name.includes("aplicativos") && data.categories.products?.status !== "pending")
+                  return { ...t, done: true };
+                return t;
+              }),
+            };
+          });
+          saveState(next, now);
+          return next;
+        });
       }
     } catch (e) { console.error(e); }
     setScanning(false);
@@ -246,60 +291,38 @@ export default function App() {
     setGeneratingReport(true);
     setReportText(null);
     try {
-      const summary = phaseStats.map((s, i) =>
+      const phaseStatsText = phaseStats.map((s, i) =>
         `Fase ${s.id} (${PHASES_META[i].name}): ${s.pct}% — ${s.status}`
       ).join("\n");
       const riskyTasks = phasesState.flatMap((p) =>
         p.tasks.filter((t) => t.late && !t.done).map((t) => `- ${t.name} (${t.owner})`)
       ).join("\n");
-      const obs = phasesState.flatMap((p) =>
+      const observations = phasesState.flatMap((p) =>
         p.tasks.filter((t) => t.obs).map((t) => `- ${t.name}: ${t.obs}`)
       ).join("\n");
 
-      const prompt = `Você é um analista de onboarding da Nuvemshop. Gere um report semanal profissional de migração para o lojista e gestor interno com base nos dados abaixo.
-
-Loja: ${storeName}
-Semana: 3 de 8
-Progresso geral: ${overallPct}%
-
-Status por fase:
-${summary}
-
-Tarefas em risco:
-${riskyTasks || "Nenhuma"}
-
-Observações do analista:
-${obs || "Nenhuma"}
-
-Gere:
-1. Resumo para WhatsApp (máx 5 linhas, com emojis, direto ao ponto)
-2. E-mail completo (tom profissional, com próximos passos)
-
-Formate assim:
-WHATSAPP:
-[texto]
-
-EMAIL:
-[texto]`;
-
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          messages: [{ role: "user", content: prompt }],
+          storeName,
+          week,
+          overallPct,
+          phaseStats: phaseStatsText,
+          riskyTasks,
+          observations,
         }),
       });
-      const result = await response.json();
-      const text = result.content?.[0]?.text || "";
-      const [waPart, emailPart] = text.split("EMAIL:");
-      setReportText({
-        whatsapp: waPart?.replace("WHATSAPP:", "").trim() || "",
-        email: emailPart?.trim() || "",
-      });
+      const data = await res.json();
+      setReportText(data);
     } catch (e) { console.error(e); }
     setGeneratingReport(false);
+  }
+
+  function copyText(text, key) {
+    navigator.clipboard.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied(null), 2000);
   }
 
   return (
@@ -360,16 +383,23 @@ EMAIL:
         </aside>
 
         <main className="flex-1 min-w-0">
-          <div className="bg-white border-b border-slate-200 px-8 py-5 flex items-center justify-between sticky top-0 z-10">
+          <div className="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
             <div className="flex items-center gap-3">
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-[17px] font-semibold">{storeName}</h1>
                   <span className="text-xs text-slate-400">· BR</span>
                 </div>
-                <div className="text-[12px] text-slate-500 mt-0.5">Semana 3 de 8 · Iniciado 12/03</div>
+                <div className="flex items-center gap-3 mt-0.5">
+                  <span className="text-[12px] text-slate-500">Semana {week} de 8</span>
+                  {lastScan && (
+                    <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                      <Clock size={10} />última varredura: {lastScan}
+                    </span>
+                  )}
+                </div>
               </div>
-              <span className="ml-3 inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+              <span className="ml-2 inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
                 <CircleDot size={11} />Em andamento
               </span>
             </div>
@@ -377,8 +407,9 @@ EMAIL:
               <button onClick={runScan} className="text-[13px] px-3 py-1.5 rounded-md border border-slate-200 hover:bg-slate-50 inline-flex items-center gap-1.5">
                 <Search size={14} />{scanning ? "Varrendo..." : "Varrer"}
               </button>
-              <button onClick={generateReport} className="text-[13px] px-3 py-1.5 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 inline-flex items-center gap-1.5 font-medium">
-                <FileText size={14} />Gerar report
+              <button onClick={generateReport} disabled={generatingReport}
+                className="text-[13px] px-3 py-1.5 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 inline-flex items-center gap-1.5 font-medium disabled:opacity-50">
+                <Sparkles size={14} />{generatingReport ? "Gerando..." : "Gerar report"}
               </button>
               <button className="text-[13px] px-3 py-1.5 rounded-md bg-[#0F172A] text-white hover:bg-slate-800 inline-flex items-center gap-1.5 font-medium">
                 <Plus size={14} />Nova tarefa
@@ -390,9 +421,7 @@ EMAIL:
             <section>
               <div className="flex items-baseline justify-between mb-3">
                 <h2 className="text-[15px] font-semibold">Progresso geral</h2>
-                <div className="text-[12px] text-slate-500">
-                  <span className="text-slate-900 font-semibold tabular-nums">{overallPct}%</span> completo
-                </div>
+                <span className="text-[12px] text-slate-500"><span className="text-slate-900 font-semibold">{overallPct}%</span> completo</span>
               </div>
               <div className="flex gap-1 h-2.5 rounded-full overflow-hidden bg-slate-200/70">
                 {PHASES_META.map((ph, i) => {
@@ -412,10 +441,12 @@ EMAIL:
             </section>
 
             <section className="grid grid-cols-4 gap-4">
-              <MetricCard label="Concluídas" value={totals.done} tone="emerald" />
-              <MetricCard label="Em andamento" value={inProgressCount} tone="amber" />
-              <MetricCard label="Em risco" value={totals.risk} tone="red" />
-              <MetricCard label="Total de tarefas" value={totals.total} tone="slate" />
+              {[
+                { label: "Concluídas", value: totals.done, tone: "emerald" },
+                { label: "Em andamento", value: inProgressCount, tone: "amber" },
+                { label: "Em risco", value: totals.risk, tone: "red" },
+                { label: "Total de tarefas", value: totals.total, tone: "slate" },
+              ].map((m) => <MetricCard key={m.label} {...m} />)}
             </section>
 
             <section className="space-y-3">
@@ -453,8 +484,7 @@ EMAIL:
                           return (
                             <div key={idx} className="border-b border-slate-100 last:border-b-0">
                               <div className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50/60">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); toggleTaskDone(ph.id, idx); }}
+                                <button onClick={(e) => { e.stopPropagation(); toggleTaskDone(ph.id, idx); }}
                                   className={`w-5 h-5 rounded-md border shrink-0 grid place-items-center transition ${
                                     task.done
                                       ? task.auto ? "bg-blue-500 border-blue-500 text-white" : "bg-emerald-500 border-emerald-500 text-white"
@@ -481,10 +511,10 @@ EMAIL:
                               </div>
 
                               {taskOpen && (
-                                <div className="px-5 pb-4 pt-1 bg-slate-50/60 border-t border-slate-100">
+                                <div className="px-5 pb-4 pt-2 bg-slate-50/60 border-t border-slate-100">
                                   <div className="grid grid-cols-2 gap-4 max-w-2xl ml-8">
                                     <div>
-                                      <label className="text-[11px] font-medium text-slate-600 block mb-1">Data real</label>
+                                      <label className="text-[11px] font-medium text-slate-600 block mb-1">Data real de conclusão</label>
                                       <input type="date" value={task.realDate}
                                         onChange={(e) => updateTaskField(ph.id, idx, "realDate", e.target.value)}
                                         className="w-full text-[12.5px] px-2.5 py-1.5 border border-slate-200 rounded-md bg-white" />
@@ -527,7 +557,7 @@ EMAIL:
               <div className="flex-1">
                 <div className="text-[14px] font-semibold text-slate-900">Report semanal pronto para gerar</div>
                 <div className="text-[12.5px] text-slate-600 mt-0.5">
-                  Semana 3 · {totals.risk} {totals.risk === 1 ? "item" : "itens"} em risco · progresso {overallPct}%
+                  Semana {week} · {totals.risk} {totals.risk === 1 ? "item" : "itens"} em risco · progresso {overallPct}%
                 </div>
               </div>
               <button onClick={generateReport} disabled={generatingReport}
@@ -538,22 +568,21 @@ EMAIL:
 
             {reportText && (
               <section className="grid grid-cols-2 gap-6">
-                <div className="bg-white border border-slate-200 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-[14px] font-semibold">WhatsApp</h3>
-                    <button onClick={() => navigator.clipboard.writeText(reportText.whatsapp)}
-                      className="text-[12px] text-blue-600 hover:underline">Copiar</button>
+                {[
+                  { key: "whatsapp", label: "WhatsApp", text: reportText.whatsapp },
+                  { key: "email", label: "E-mail", text: reportText.email },
+                ].map((r) => (
+                  <div key={r.key} className="bg-white border border-slate-200 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-[14px] font-semibold">{r.label}</h3>
+                      <button onClick={() => copyText(r.text, r.key)}
+                        className="text-[12px] text-blue-600 hover:underline flex items-center gap-1">
+                        <Copy size={12} />{copied === r.key ? "Copiado!" : "Copiar"}
+                      </button>
+                    </div>
+                    <pre className="text-[12px] text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">{r.text}</pre>
                   </div>
-                  <pre className="text-[12px] text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">{reportText.whatsapp}</pre>
-                </div>
-                <div className="bg-white border border-slate-200 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-[14px] font-semibold">E-mail</h3>
-                    <button onClick={() => navigator.clipboard.writeText(reportText.email)}
-                      className="text-[12px] text-blue-600 hover:underline">Copiar</button>
-                  </div>
-                  <pre className="text-[12px] text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">{reportText.email}</pre>
-                </div>
+                ))}
               </section>
             )}
           </div>
